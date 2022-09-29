@@ -25,9 +25,9 @@ node {
     withCredentials([file(credentialsId: JWT_KEY_CRED_ID, variable: 'jwt_key_file')]) {
         stage('Authorize ORG') {
             if (isUnix()) {
-                rc = sh returnStatus: true, script: "${toolbelt} force:auth:jwt:grant --clientid ${CONNECTED_APP_CONSUMER_KEY} --username ${HUB_ORG} --jwtkeyfile ${jwt_key_file} -d --instanceurl ${SFDC_HOST}"
+                rc = sh returnStatus: true, script: "${toolbelt}/sfdx force:auth:jwt:grant --clientid ${CONNECTED_APP_CONSUMER_KEY} --username ${HUB_ORG} --jwtkeyfile ${jwt_key_file} -d --instanceurl ${SFDC_HOST}"
             } else {
-                rc = bat returnStatus: true, script: "${toolbelt} force:auth:jwt:grant --clientid ${CONNECTED_APP_CONSUMER_KEY} --username ${HUB_ORG} --jwtkeyfile \"${jwt_key_file}\" -d --instanceurl ${SFDC_HOST}"
+                rc = bat returnStatus: true, script: "${toolbelt}/sfdx force:auth:jwt:grant --clientid ${CONNECTED_APP_CONSUMER_KEY} --username ${HUB_ORG} --jwtkeyfile \"${jwt_key_file}\" -d --instanceurl ${SFDC_HOST}"
             }
             
             if (rc != 0) {
@@ -36,9 +36,9 @@ node {
 
             println(rc)
             /*if (isUnix()) {
-                scratchorg = sh returnStdout: true, script: "${toolbelt} force:org:create -f ./config/project-scratch-def.json --json -a ci-cd-org -s -w 10 -d 30"
+                scratchorg = sh returnStdout: true, script: "${toolbelt}/sfdx force:org:create -f ./config/project-scratch-def.json --json -a ci-cd-org -s -w 10 -d 30"
             } else {
-                scratchorg = bat returnStdout: true, script: "${toolbelt} force:org:create -f ./config/project-scratch-def.json --json -a ci-cd-org -s -w 10 -d 30"
+                scratchorg = bat returnStdout: true, script: "${toolbelt}/sfdx force:org:create -f ./config/project-scratch-def.json --json -a ci-cd-org -s -w 10 -d 30"
             }
             println('scratchorg')
             println(scratchorg)*/
@@ -56,20 +56,20 @@ node {
         stage('Convert Salesforce DX and Store in SRC Folder') {
             if (isUnix()) {
                 println(' Convert SFDC Project to normal project')
-                srccode = sh returnStdout: true, script : "${toolbelt} force:source:convert -r force-app -d ./src"
+                srccode = sh returnStdout: true, script : "${toolbelt}/sfdx force:source:convert -r force-app -d ./src"
             } else {
                 println(' Convert SFDC Project to normal project')
-                srccode = bat returnStdout: true, script : "${toolbelt} force:source:convert -r force-app -d ./src"
+                srccode = bat returnStdout: true, script : "${toolbelt}/sfdx force:source:convert -r force-app -d ./src"
             }
             println(srccode)
         }
         stage('Push To Target Org') {
             if(isUnix()){
                 println(' Deploy the code into Scratch ORG.')
-                sourcepush = sh returnStdout: true, script : "${toolbelt} force:mdapi:deploy -d ./src -u ${HUB_ORG}"
+                sourcepush = sh returnStdout: true, script : "${toolbelt}/sfdx force:mdapi:deploy -d ./src -u ${HUB_ORG}"
             }else{
                 println(' Deploy the code into Scratch ORG.')
-                sourcepush = bat returnStdout: true, script : "${toolbelt} force:mdapi:deploy -d ./src -u ${HUB_ORG}"
+                sourcepush = bat returnStdout: true, script : "${toolbelt}/sfdx force:mdapi:deploy -d ./src -u ${HUB_ORG}"
             }
             /*if (isUnix()) {
                 println(' Deploy the code into Scratch ORG.')
@@ -85,10 +85,10 @@ node {
             println(sourcepush)
             if(isUnix()){
                 println('Checking Deployment Status');
-                statusDep = sh returnStdout: true, script: "${toolbelt} force:mdapi:deploy:report -u ${HUB_ORG} --json"
+                statusDep = sh returnStdout: true, script: "${toolbelt}/sfdx force:mdapi:deploy:report -u ${HUB_ORG} --json"
             }else{
                 println('Checking Deployment Status');
-                statusDep = bat returnStdout: true, script: "${toolbelt} force:mdapi:deploy:report -u ${HUB_ORG} --json"
+                statusDep = bat returnStdout: true, script: "${toolbelt}/sfdx force:mdapi:deploy:report -u ${HUB_ORG} --json"
             }
             println(' Deployment Status ')
             println(statusDep)
@@ -103,10 +103,10 @@ node {
             
             if(isUnix()){
                 println('Checking Deployment Status Again ');
-                statusDep1 = sh returnStdout: true, script: "${toolbelt} force:mdapi:deploy:report -u ${HUB_ORG} --json"
+                statusDep1 = sh returnStdout: true, script: "${toolbelt}/sfdx force:mdapi:deploy:report -u ${HUB_ORG} --json"
             }else{
                 println('Checking Deployment Status Again');
-                statusDep1 = bat returnStdout: true, script: "${toolbelt} force:mdapi:deploy:report -u ${HUB_ORG} --json"
+                statusDep1 = bat returnStdout: true, script: "${toolbelt}/sfdx force:mdapi:deploy:report -u ${HUB_ORG} --json"
             }
             println('Updated Deployment Status')
             println(statusDep1)
@@ -128,10 +128,10 @@ node {
             
             if(isUnix()){
                 println(' Assign the Permission Set to the New user ')
-                permset = sh returnStdout: true, script: "${toolbelt} force:user:permset:assign -n yeurdreamin -u ${HUB_ORG} --json"
+                permset = sh returnStdout: true, script: "${toolbelt}/sfdx force:user:permset:assign -n yeurdreamin -u ${HUB_ORG} --json"
             }else{
                 println(' Assign the Permission Set to the New user ')
-                permset = bat returnStdout: true, script: "${toolbelt} force:user:permset:assign -n yeurdreamin -u ${HUB_ORG} --json"
+                permset = bat returnStdout: true, script: "${toolbelt}/sfdx force:user:permset:assign -n yeurdreamin -u ${HUB_ORG} --json"
             }
             
             println(permset)
@@ -142,10 +142,10 @@ node {
         stage('Import Data to test ORG') {
             if (isUnix()) {
                 println(' importing data to test org')
-                dataimport = sh returnStdout: true, script: "${toolbelt} force:data:tree:import --plan ./data/data-plan.json -u ${HUB_ORG} --json"
+                dataimport = sh returnStdout: true, script: "${toolbelt}/sfdx force:data:tree:import --plan ./data/data-plan.json -u ${HUB_ORG} --json"
             } else {
                 println(' importing data to test org.')
-                dataimport = bat returnStdout: true, script: "${toolbelt} force:data:tree:import --plan ./data/data-plan.json -u ${HUB_ORG} --json"
+                dataimport = bat returnStdout: true, script: "${toolbelt}/sfdx force:data:tree:import --plan ./data/data-plan.json -u ${HUB_ORG} --json"
             }
             //println(dataimport)
             if (dataimport != 0) {
@@ -154,17 +154,17 @@ node {
         }
         stage('Run Local Test Classes') {
             if (isUnix()) {
-                testStatus = sh returnStdout: true, script: "${toolbelt} force:apex:test:run --testlevel RunLocalTests -u ${HUB_ORG}"
+                testStatus = sh returnStdout: true, script: "${toolbelt}/sfdx force:apex:test:run --testlevel RunLocalTests -u ${HUB_ORG}"
             } else {
-                testStatus = bat returnStdout: true, script: "${toolbelt} force:apex:test:run --testlevel RunLocalTests -u ${HUB_ORG} --json"
+                testStatus = bat returnStdout: true, script: "${toolbelt}/sfdx force:apex:test:run --testlevel RunLocalTests -u ${HUB_ORG} --json"
             }
             println(testStatus)
         }
         stage('Open Target ORG') {
             if (isUnix()) {
-                openorg = sh returnStdout: true, script: "${toolbelt} force:org:open -u ${HUB_ORG} --json" 
+                openorg = sh returnStdout: true, script: "${toolbelt}/sfdx force:org:open -u ${HUB_ORG} --json" 
             } else {
-                openorg = bat returnStdout: true, script: "${toolbelt} force:org:open -u ${HUB_ORG} --json"
+                openorg = bat returnStdout: true, script: "${toolbelt}/sfdx force:org:open -u ${HUB_ORG} --json"
             }
             println(openorg)
         }
